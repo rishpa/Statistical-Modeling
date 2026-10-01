@@ -1,0 +1,189 @@
+---
+title: "Statistical Modelling Assignment"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+date: "2026-04-02"
+---
+
+# Question 1
+
+```{r}
+load("air.Rdata")
+```
+
+```{r}
+head(air)
+```
+
+```{r}
+str(air)
+```
+
+```{r}
+require(skimr)
+```
+
+```{r}
+skim_without_charts(air)
+```
+
+```{r}
+mean(air$NO2)
+mean(air$PM10)
+```
+
+-The mean is computed to measure the overall pollution level across monitoring stations, while the standard deviation is used to assess the variation in pollution levels.
+
+```{r}
+sd(air$NO2)
+sd(air$PM10)
+```
+
+A high standard deviation indicates that pollution levels vary significantly across monitoring stations, while a low standard deviation suggests more consistent pollution levels.
+
+```{r}
+summary(air$NO2)
+summary(air$PM10)
+```
+
+summary() is used because it provides additional information about the distribution of the data, including minimum, maximum, and quartiles.
+
+```{r}
+range(air$NO2)
+```
+
+```{r}
+range(air$PM10)
+```
+
+NO2: The values of NO2 range widely from a minimum of 10.40 to a maximum of 80. The mean is 43.94 (approximately 44), while the median is 42, with a relatively high standard deviation of 22.31. This shows that NO2 levels vary a lot across different monitoring stations.
+
+PM10: The values of PM10 are lower compared to NO2, ranging from 13.60 to 37.50. The mean is 24.04 and the median is 24.15, with a smaller standard deviation of 5.53. This indicates that PM10 levels are more consistent across stations.
+
+Overall, NO2 shows greater variability, while PM10 values are more stable.
+
+# Question 2
+
+```{r}
+qqnorm(air$PM10, col = "red", main = "Q-Q plot for PM10")
+qqline(air$PM10)
+```
+
+The Q-Q plot for PM10 shows that most of the data points lie close to the reference line, especially in the middle range. This suggests that the data is approximately normally distributed.
+
+However, there are slight deviations at the lower and upper ends of the plot, indicating some departure from perfect normality. Overall, the assumption of normality for PM10 appears to be reasonably valid.
+
+# Question 3
+
+```{r}
+plot(air$NO2, air$PM10,
+     xlab = "NO2",
+     ylab = "PM10",
+     type = "p",
+     pch = 16, cex = 0.4, 
+     col = "red"
+     )
+```
+
+```{r}
+round(cor(air$NO2, air$PM10), 3)
+```
+
+The scatterplot shows a slight upward trend, indicating that as NO2 increases, PM10 also tends to increase. However, the points are quite spread out, so the relationship is not very strong.
+
+The correlation coefficient is 0.399, which suggests a moderate positive relationship between NO2 and PM10. This means that higher NO2 levels are generally associated with higher PM10 levels, but the association is not very strong.
+
+
+# Question 4
+
+```{r}
+set.seed(125)
+B <- 2000
+boot_cor <- numeric(B)
+for (i in 1:B) {
+  idx <-sample(nrow(air), replace = TRUE)  
+  boot_sample <- air[idx,]
+  boot_cor[i] <- cor(boot_sample$NO2, boot_sample$PM10)
+}
+round(cor(air$NO2, air$PM10), 3)
+```
+
+```{r}
+round(sd(boot_cor),3)
+```
+
+The bootstrap method is used to estimate the variability of the correlation between NO2 and PM10 by repeatedly resampling the data with replacement. A total of 2000 bootstrap samples are generated, and the correlation is calculated for each sample.
+
+The original correlation is 0.399, and the bootstrap standard error is 0.138. This shows that there is some variability in the estimated correlation across different samples.
+
+Since the standard error is not very small compared to the correlation value, it suggests that the relationship between NO2 and PM10 is moderate but not very strong and may vary across samples.
+
+
+# Question 5
+
+```{r}
+set.seed(125)
+B <- 2000
+boot_cor <- numeric(B)
+for (i in 1:B) {
+  idx <-sample(nrow(air), replace = TRUE)  
+  boot_sample <- air[idx,]
+  boot_cor[i] <- cor(boot_sample$NO2, boot_sample$PM10)
+}
+round(cor(air$NO2, air$PM10), 3)
+```
+
+```{r}
+round(sd(boot_cor),3)
+```
+
+```{r}
+Q <- quantile(boot_cor, c(0.05, 0.95))
+Q[1]; Q[2]
+```
+
+The 90% confidence interval for the correlation coefficient is obtained using the bootstrap quantile method. Based on the results, the interval ranges from 0.166 to 0.610.
+
+This interval is entirely positive, which suggests that there is a positive relationship between NO2 and PM10. It also indicates that the true correlation is likely to lie within this range.
+
+Since the interval is not very narrow, it shows some uncertainty in the estimate, but overall the association between the two pollutants remains moderate and positive.
+
+# Question 6
+
+```{r}
+sB <- mean(boot_cor)
+
+hist(boot_cor,
+     breaks = 60,
+     freq = FALSE,
+     main = "Bootstrap distribution with B = 2000",
+     xlab = "Correlation coefficient",
+     col = "pink",
+     ylab = "Density")
+
+abline(v = c(cor(air$NO2, air$PM10), sB, Q[1], Q[2]), 
+       col = c("red", "blue", "green", "green"))
+
+legend("topleft",
+       c("Estimate", "Mean of B", "conf.int1", "conf.int2"),
+       col = c("red","blue", "green", "green"),
+       lty = c(1,1,1,1),
+       lwd = c(3,3,3,3),
+       cex = 0.7)
+```
+
+The histogram shows the bootstrap distribution of the correlation coefficient based on 2000 resamples. The shape of the distribution appears roughly symmetric and centered around the original estimate.
+
+The red line represents the original correlation, while the blue line shows the mean of the bootstrap values. Both lines are very close to each other, indicating that the bootstrap estimates are consistent with the original sample.
+
+The green lines represent the confidence interval bounds, showing the range within which the correlation is likely to lie. Most of the bootstrap values fall within this interval.
+
+Overall, the plot suggests that the estimated correlation is reasonably stable, although there is some spread in the values, indicating moderate variability.
+
+
+
+
+
